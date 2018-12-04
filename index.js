@@ -2,16 +2,26 @@
 const createHtmlElement = require('create-html-element');
 
 // Capture the whole URL in group 1 to keep string.split() support
-const urlRegex = () => (/((?<!\+)(?:https?(?::\/\/))(?:www\.)?(?:[a-zA-Z\d-_.]+(?:\.[a-zA-Z\d]{2,})|localhost)(?:(?:[-a-zA-Z\d:%_+.~#!?&//=@]*)(?:[,](?![\s]))*)*)/g);
+const urlRegex = () => (/((?:\+)?(?:https?(?::\/\/))(?:www\.)?(?:[a-zA-Z\d-_.]+(?:\.[a-zA-Z\d]{2,})|localhost)(?:(?:[-a-zA-Z\d:%_+.~#!?&//=@]*)(?:[,](?![\s]))*)*)/g);
+
+// Test if the URL starts with a `+`
+// Should be replaced by a look-behind on `urlRegex` when widely available
+const startsWithPlus = /^\+/;
 
 // Get <a> element as string
-const linkify = (href, options) => createHtmlElement({
-	name: 'a',
-	attributes: Object.assign({href: ''}, options.attributes, {href}),
-	text: typeof options.value === 'undefined' ? href : undefined,
-	html: typeof options.value === 'undefined' ? undefined :
-		(typeof options.value === 'function' ? options.value(href) : options.value)
-});
+const linkify = (href, options) => {
+	if (href.match(startsWithPlus)) {
+		return href;
+	}
+
+	return createHtmlElement({
+		name: 'a',
+		attributes: Object.assign({href: ''}, options.attributes, {href}),
+		text: typeof options.value === 'undefined' ? href : undefined,
+		html: typeof options.value === 'undefined' ? undefined :
+			(typeof options.value === 'function' ? options.value(href) : options.value)
+	});
+};
 
 // Get DOM node from HTML
 const domify = html => document.createRange().createContextualFragment(html);
